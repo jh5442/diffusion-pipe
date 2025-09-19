@@ -1023,6 +1023,7 @@ class Wan2_2_VAE:
 
     def encode(self, videos):
         try:
+            print("VAE Encode, WAN 2.2")
             if not isinstance(videos, list):
                 raise TypeError("videos should be a list")
             with amp.autocast(dtype=self.dtype):

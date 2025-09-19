@@ -1,0 +1,55 @@
+
+output_dir = "/home/ubuntu/jin-Vol/results/diff_pipe/verify_diff_pipe/1980_horror_style_lora"
+dataset = "/home/ubuntu/jin-Vol/code/diffusion-pipe/my_scripts/verify_diff_pipe/wan_2.2_dataset_verify_lora_training.toml"
+
+eval_datasets = [
+     {name = 'Evaluation', config = '/home/ubuntu/jin-Vol/code/diffusion-pipe/my_scripts/verify_diff_pipe/wan_2.2_dataset_verify_lora_valid.toml'},
+ ]
+
+
+epochs = 1000
+micro_batch_size_per_gpu = 8
+pipeline_stages = 1
+gradient_accumulation_steps = 4
+gradient_clipping = 1.0
+warmup_steps = 10
+
+eval_every_n_epochs = 1
+eval_before_first_step = true
+eval_micro_batch_size_per_gpu = 1
+eval_gradient_accumulation_steps = 1
+
+save_every_n_epochs = 1
+activation_checkpointing = true
+partition_method = 'parameters'
+save_dtype = 'bfloat16'
+caching_batch_size = 1
+steps_per_print = 1
+video_clip_mode = 'single_beginning'
+
+[model]
+type = 'wan'
+ckpt_path = '/home/ubuntu/jin-Vol/models/Wan2.2-T2V-A14B'
+transformer_path = '/home/ubuntu/jin-Vol/models/Wan2.2-T2V-A14B/high_noise_model'
+dtype = 'bfloat16'
+transformer_dtype = 'float8'
+min_t = 0.875
+max_t = 1
+
+[adapter]
+type = 'lora'
+rank = 64
+dtype = 'bfloat16'
+
+[optimizer]
+type = 'adamw_optimi'
+lr = 2e-4
+betas = [0.9, 0.99]
+weight_decay = 0.01
+eps = 1e-8
+
+[monitoring]
+enable_wandb = true
+wandb_api_key = 'e33683a54e629c2bc8d4736233c0d473b53a5bea'
+wandb_tracker_name = 'diff_pipe_wan_2.2_lora_verify_1980s_horror'
+wandb_run_name = 'exp_debug_high_noise'

@@ -53,6 +53,7 @@ class WanModelFromSafetensors(WanModel):
 
 
 def vae_encode(tensor, vae):
+    print("VAE Model:", vae.model)
     return vae.model.encode(tensor, vae.scale)
 
 
@@ -191,6 +192,7 @@ class WanPipeline(BasePipeline):
         self.text_encoder.model.requires_grad_(False)
 
         vae_class = Wan2_2_VAE if model_type == 'ti2v' else Wan2_1_VAE
+        # We are doing T2V so technically we are using Wan 2.1 VAE
         # Same here, this isn't a nn.Module.
         self.vae = vae_class(
             vae_pth=ckpt_dir / wan_config.vae_checkpoint,
@@ -282,7 +284,9 @@ class WanPipeline(BasePipeline):
             vae = vae_and_clip.vae
             p = next(vae.parameters())
             tensor = tensor.to(p.device, p.dtype)
+            print("WAN get_call_vae_fn, vae encode to latents")
             latents = vae_encode(tensor, self.vae)
+            print("Shape of latents: ", latents.shape)
             ret = {'latents': latents}
 
             if is_i2v:
@@ -303,6 +307,7 @@ class WanPipeline(BasePipeline):
                 ret['y'] = y
 
             clip = vae_and_clip.clip
+            print("Clip:", clip)
             if clip is not None:
                 clip_context = self.clip.visual(first_frame.to(p.device, p.dtype))
                 if self.model_type == 'flf2v':
@@ -377,6 +382,7 @@ class WanPipeline(BasePipeline):
         text_encoder = None if self.cache_text_embeddings else self.text_encoder.model
         layers = [InitialLayer(transformer, text_encoder)]
         for i, block in enumerate(transformer.blocks):
+            # print(i)
             layers.append(TransformerLayer(block, i, self.offloader))
         layers.append(FinalLayer(transformer))
         return layers
@@ -412,6 +418,8 @@ class WanPipeline(BasePipeline):
 class InitialLayer(nn.Module):
     def __init__(self, model, text_encoder):
         super().__init__()
+        # The "model" here is transformer
+        print("InitialLayer.")
         self.patch_embedding = model.patch_embedding
         self.time_embedding = model.time_embedding
         self.text_embedding = model.text_embedding
@@ -433,6 +441,7 @@ class InitialLayer(nn.Module):
             if torch.is_floating_point(item):
                 item.requires_grad_(True)
 
+        # Here is all the inputs unpacked -- JH
         x, y, t, text_embeddings_or_ids, seq_lens_or_text_mask, clip_fea = inputs
         bs, channels, f, h, w = x.shape
         if clip_fea.numel() == 0:

@@ -430,6 +430,7 @@ class WanModel(ModelMixin, ConfigMixin):
         super().__init__()
 
         assert model_type in ['t2v', 'i2v', 'flf2v', 'vace', 'i2v_v2', 'ti2v']
+        print("model.py line 433")
         self.model_type = model_type
 
         self.patch_size = patch_size

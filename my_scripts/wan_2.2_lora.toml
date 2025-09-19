@@ -1,8 +1,9 @@
 # Output path for training runs. Each training run makes a new directory in here.
-output_dir = '/data/diffusion_pipe_training_runs/hunyuan_video_test'
+output_dir = '/picassox/intelligent-cpfs/pixocial/jin.huang/results/diff_pipe/wan_2.2'
 
 # Dataset config file.
-dataset = 'examples/dataset.toml'
+dataset = '/picassox/intelligent-cpfs/pixocial/jin.huang/code/diffusion-pipe/wan_2.2_dataset.toml'
+
 # You can have separate eval datasets. Give them a name for Tensorboard metrics.
 # eval_datasets = [
 #     {name = 'something', config = 'path/to/eval_dataset.toml'},
@@ -115,20 +116,13 @@ video_clip_mode = 'single_beginning'
 # This is how you configure HunyuanVideo. Other models will be different. See docs/supported_models.md for
 # details on the configuration and options for each model.
 [model]
-type = 'hunyuan-video'
-# Can load HunyuanVideo entirely from the ckpt path set up for the official inference scripts.
-#ckpt_path = '/home/anon/HunyuanVideo/ckpts'
-# Or you can load it by pointing to all the ComfyUI files.
-transformer_path = '/data2/imagegen_models/hunyuan_video_comfyui/hunyuan_video_720_cfgdistill_fp8_e4m3fn.safetensors'
-vae_path = '/data2/imagegen_models/hunyuan_video_comfyui/hunyuan_video_vae_bf16.safetensors'
-llm_path = '/data2/imagegen_models/hunyuan_video_comfyui/llava-llama-3-8b-text-encoder-tokenizer'
-clip_path = '/data2/imagegen_models/hunyuan_video_comfyui/clip-vit-large-patch14'
-# Base dtype used for all models.
+type = 'wan'
+ckpt_path = '/picassox/intelligent-cpfs/pixocial/jin.huang/models/Wan2.2-T2V-A14B'
+transformer_path = '/picassox/intelligent-cpfs/pixocial/jin.huang/models/Wan2.2-T2V-A14B/low_noise_model'
 dtype = 'bfloat16'
-# Hunyuan Video supports fp8 for the transformer when training LoRA.
 transformer_dtype = 'float8'
-# How to sample timesteps to train on. Can be logit_normal or uniform.
-timestep_sample_method = 'logit_normal'
+min_t = 0
+max_t = 0.875
 
 # For models that support full fine tuning, simply delete or comment out the [adapter] table to FFT.
 [adapter]
@@ -177,6 +171,6 @@ eps = 1e-8
 [monitoring]
 # Set to true and fill in these fields to enable wandb
 enable_wandb = false
-wandb_api_key = '30a285a6dd3d8f882d18173f9f328a7b595690c2'
-wandb_tracker_name = 'diff_pipe_wan_2.2_lora_verify_1980s_horror'
-wandb_run_name = 'exp_debug'
+wandb_api_key = ''
+wandb_tracker_name = ''
+wandb_run_name = ''

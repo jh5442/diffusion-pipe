@@ -1012,6 +1012,7 @@ class DatasetManager:
         self.datasets = []
 
     def register(self, dataset):
+        print("Register data, appending it to the dataset.")
         self.datasets.append(dataset)
 
     # Some notes for myself:
@@ -1019,6 +1020,7 @@ class DatasetManager:
     # Mix and match native multiprocessing / torch.multiprocessing and multiprocess at your peril! Things can break.
     # In patches.py we register reductions so Tensors sent over Queues and Pipes are efficient just like in torch.multiprocessing.
     def cache(self, unload_models=True):
+        print("Cache data.")
         if is_main_process():
             manager = mp.Manager()
             queue = [manager.Queue()]
@@ -1029,6 +1031,7 @@ class DatasetManager:
 
         # start up a process to run through the dataset caching flow
         if is_main_process():
+            print("is_main_process()")
             process = mp.Process(
                 target=_cache_fn,
                 args=(
@@ -1045,12 +1048,15 @@ class DatasetManager:
 
         # loop on the original processes (one per GPU) to handle tasks requiring GPU models (VAE, text encoders)
         while True:
+            print("loop on the original processes (one per GPU) to handle tasks requiring GPU models")
             task = queue.get()
+            print("Task:", task)
             if task is None:
                 # Propagate None so all worker processes break out of this loop.
                 # This is safe because it's a FIFO queue. The first None always comes after all work items.
                 queue.put(None)
                 break
+            print("Dataset manager cache: handle task")
             self._handle_task(task)
 
         if unload_models:
@@ -1087,8 +1093,10 @@ class DatasetManager:
             tensor, control_tensor, pipe = task[1:]
             if control_tensor is not None:
                 # edit dataset
+                print("call_vae_fun: control tensor is not None")
                 results = self.call_vae_fn(tensor, control_tensor)
             else:
+                print("call_vae_fun: control tensor is None")
                 results = self.call_vae_fn(tensor)
         elif id > 0:
             caption, is_video, control_file, pipe = task[1:]

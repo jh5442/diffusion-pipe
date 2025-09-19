@@ -358,9 +358,14 @@ if __name__ == '__main__':
         'steps_per_print': config.get('steps_per_print', 1),
     }
     caching_batch_size = config.get('caching_batch_size', 1)
-    dataset_manager = dataset_util.DatasetManager(model, regenerate_cache=regenerate_cache, trust_cache=args.trust_cache, caching_batch_size=caching_batch_size)
+    print("Setting up dataset_manager")
+    dataset_manager = dataset_util.DatasetManager(model, regenerate_cache=regenerate_cache,
+                                                  trust_cache=args.trust_cache,
+                                                  caching_batch_size=caching_batch_size)
 
-    train_data = dataset_util.Dataset(dataset_config, model, skip_dataset_validation=args.i_know_what_i_am_doing)
+    train_data = dataset_util.Dataset(dataset_config, model,
+                                      skip_dataset_validation=args.i_know_what_i_am_doing)
+    print("Register dataset.")
     dataset_manager.register(train_data)
 
     eval_data_map = {}
@@ -443,11 +448,16 @@ if __name__ == '__main__':
         dist.barrier()
         quit()
 
+    # VAE is in here... it appends the latents into self.datasets
+    print("Dataset manager: cache data")
     dataset_manager.cache()
     if args.cache_only:
         quit()
 
+    print("Load diffusion model.")
     model.load_diffusion_model()
+    # import sys
+    # sys.exit()
 
     if adapter_config := config.get('adapter', None):
         model.configure_adapter(adapter_config)

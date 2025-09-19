@@ -1,0 +1,14 @@
+# Use images of size 1024x1024 to do LoRA finetune
+# This is to verify that diffusion pipeline code base works fine
+
+resolutions = [1024]
+enable_ar_bucket = true
+ar_buckets = [[1024,1024]]
+frame_buckets = [1]
+
+[[directory]]
+path = '/home/ubuntu/jin-Vol/data/diff_pipe/wan_2.2_lora_verify/1980s_horror_training'
+num_repeats = 10
+resolutions = [[1024,1024]]
+ar_buckets = [[1024,1024]]
+
