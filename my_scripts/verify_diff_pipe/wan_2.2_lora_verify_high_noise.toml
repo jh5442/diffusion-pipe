@@ -30,11 +30,12 @@ video_clip_mode = 'single_beginning'
 [model]
 type = 'wan'
 ckpt_path = '/home/ubuntu/jin-Vol/models/Wan2.2-T2V-A14B'
-transformer_path = '/home/ubuntu/jin-Vol/models/Wan2.2-T2V-A14B/high_noise_model'
+transformer_path = '/home/ubuntu/jin-Vol/models/Wan2.2-T2V-A14B/low_noise_model'
 dtype = 'bfloat16'
 transformer_dtype = 'float8'
 min_t = 0.875
 max_t = 1
+cache_text_embeddings = false
 
 [adapter]
 type = 'lora'

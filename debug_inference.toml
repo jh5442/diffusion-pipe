@@ -1,0 +1,8 @@
+[model]
+type = 'wan'
+ckpt_path = '/home/ubuntu/jin-Vol/models/Wan2.2-T2V-A14B'
+dtype = 'bfloat16'
+transformer_dtype = 'float8'
+min_t = 0.875
+max_t = 1
+cache_text_embeddings = false

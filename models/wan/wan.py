@@ -333,6 +333,7 @@ class WanPipeline(BasePipeline):
         return fn
 
     def prepare_inputs(self, inputs, timestep_quantile=None):
+
         latents = inputs['latents'].float()
         mask = inputs['mask']
         y = inputs['y'] if self.model_type in ('i2v', 'flf2v', 'i2v_v2') else None
@@ -419,7 +420,7 @@ class InitialLayer(nn.Module):
     def __init__(self, model, text_encoder):
         super().__init__()
         # The "model" here is transformer
-        print("InitialLayer.")
+        print("WanPipeline InitialLayer.")
         self.patch_embedding = model.patch_embedding
         self.time_embedding = model.time_embedding
         self.text_embedding = model.text_embedding
@@ -435,23 +436,33 @@ class InitialLayer(nn.Module):
         self.dim = model.dim
         self.text_len = model.text_len
 
-    @torch.autocast('cuda', dtype=AUTOCAST_DTYPE)
+    @torch.autocast('cuda', dtype=torch.bfloat16)
     def forward(self, inputs):
-        for item in inputs:
-            if torch.is_floating_point(item):
-                item.requires_grad_(True)
+        # for item in inputs:
+        #     if torch.is_floating_point(item):
+        #         item.requires_grad_(True)
 
         # Here is all the inputs unpacked -- JH
         x, y, t, text_embeddings_or_ids, seq_lens_or_text_mask, clip_fea = inputs
         bs, channels, f, h, w = x.shape
-        if clip_fea.numel() == 0:
-            clip_fea = None
+
+        # clip_fea = []
+        # if clip_fea.numel() == 0:
+        #     clip_fea = None
+
+        # Convert type
+        x = x.to(torch.float32)
+        t = t.to(torch.float32)
+        text_embeddings_or_ids = text_embeddings_or_ids.to(torch.float32) if torch.is_floating_point(text_embeddings_or_ids) else text_embeddings_or_ids
+        seq_lens_or_text_mask = seq_lens_or_text_mask.to(torch.int64)
 
         if self.text_encoder is not None:
+            print("[!!!] Doing text encoding.")
             assert not torch.is_floating_point(text_embeddings_or_ids)
             with torch.no_grad():
                 context = self.text_encoder(text_embeddings_or_ids, seq_lens_or_text_mask)
-            context.requires_grad_(True)
+                print("[!!] context shape:", context.shape)
+            # context.requires_grad_(True)
             text_seq_lens = seq_lens_or_text_mask.gt(0).sum(dim=1).long()
         else:
             context = text_embeddings_or_ids
@@ -472,7 +483,9 @@ class InitialLayer(nn.Module):
             x = [torch.cat([u, v], dim=0) for u, v in zip(x, y)]
 
         # embeddings
+        # Convert each latent to the same dtype as patch_embedding weights
         x = [self.patch_embedding(u.unsqueeze(0)) for u in x]
+
         grid_sizes = torch.stack(
             [torch.tensor(u.shape[2:], dtype=torch.long) for u in x])
         x = [u.flatten(2).transpose(1, 2) for u in x]
@@ -547,6 +560,7 @@ class FinalLayer(nn.Module):
 
     @torch.autocast('cuda', dtype=AUTOCAST_DTYPE)
     def forward(self, inputs):
+        print("WanPipeline. FinalLayer.")
         x, e, e0, seq_lens, grid_sizes, freqs, context = inputs
         x = self.head(x, e)
         x = self.unpatchify(x, grid_sizes)

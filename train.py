@@ -160,6 +160,7 @@ def get_data_iterator_for_step(dataloader, engine, num_micro_batches=None):
         return None
     dataloader_iter = iter(dataloader)
     items = [next(dataloader_iter) for _ in range(num_micro_batches)]
+
     return iter(items)
 
 

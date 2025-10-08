@@ -40,6 +40,8 @@ def rope_params(max_seq_len, dim, theta=10000):
 def rope_apply(x, grid_sizes, freqs):
     n, c = x.size(2), x.size(3) // 2
 
+    # print("[!!!] x shape before ROPE: ", x.shape)
+
     # split freqs
     freqs = freqs.split([c - 2 * (c // 3), c // 3, c // 3], dim=1)
 
@@ -64,6 +66,9 @@ def rope_apply(x, grid_sizes, freqs):
 
         # append to collection
         output.append(x_i)
+
+    # print("[!!!] x shape after ROPE: ", x.shape)
+
     return torch.stack(output).float()
 
 
@@ -451,6 +456,11 @@ class WanModel(ModelMixin, ConfigMixin):
         # embeddings
         self.patch_embedding = nn.Conv3d(
             in_dim, dim, kernel_size=patch_size, stride=patch_size)
+
+        # print("self.patch_embedding")
+        # for name, param in self.patch_embedding.named_parameters():
+        #     print(name, param.dtype)
+
         self.text_embedding = nn.Sequential(
             nn.Linear(text_dim, dim), nn.GELU(approximate='tanh'),
             nn.Linear(dim, dim))
